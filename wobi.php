@@ -10,7 +10,7 @@ function _wobi_errorMessage()
 }
 
 // Returns true on success, false on error.
-function _wobi_addTorrent($torrent_file_path, $file_url, $file_path)
+function _wobi_addTorrent($torrent_file_path, $torrent_file_url)
 {
 
     global $WOBI_TRACKER_URL;
@@ -18,14 +18,14 @@ function _wobi_addTorrent($torrent_file_path, $file_url, $file_path)
 
 	$tracker_url = $TRACKER_URL;
     $httpseed = true;
-    $relative_path = "../../torrents/"; // From wp-content/plugins/wobi/ to wp-content/torrents/
+    $relative_path = "../../torrents/"; // From wp-content/plugins/wobi/ to wp-content/torrents/ (XXX ?)
     $getrightseed = true;
     $httpftplocation = $url;
     $target_path = "torrents/";
 
     $autoset = true;
     $filename = ""; // Extracted from torrent (if $autoset)
-    // $url = "";   // Extracted from torrent (if $autoset) [now function argument]
+    $url = "";      // Extracted from torrent (if $autoset)
 	$hash = "";     // Extracted from torrent (if $autoset)
 
 	// Already connected.
@@ -91,18 +91,11 @@ function _wobi_addTorrent($torrent_file_path, $file_url, $file_path)
     $hash = @sha1(BEncode($array["info"]));
     fclose($fd);
     
-    $target_path = $target_path . basename( clean($_FILES['torrent']['name'])); 
-    $move_torrent = move_uploaded_file($_FILES["torrent"]["tmp_name"], $target_path);
-    if ($move_torrent == false)
-    {
-        echo _wobi_errorMessage() . "Unable to move " . $_FILES["torrent"]["tmp_name"] . " to torrents/</p>\n";
-    }	
-	
+    $target_path = $torrent_file_path; // Don't move the torrent, we already put it in a nice place.
 
-	if (!empty($filename))
+	if (!empty($filename)) // XXX can probably remove this...
 		$filename = clean($filename);
-	
-	if (!empty($url))
+	if (!empty($url)) // XXX and this
 		$url = clean($url);
 
 	if ($autoset)
@@ -110,7 +103,6 @@ function _wobi_addTorrent($torrent_file_path, $file_url, $file_path)
 		if (strlen($filename) == 0 && isset($array["info"]["name"]))
 			$filename = $array["info"]["name"];
 	}
-	
 
 	//figure out total size of all files in torrent
 	$info = $array["info"];
@@ -151,20 +143,22 @@ function _wobi_addTorrent($torrent_file_path, $file_url, $file_path)
 	if ($status)
 	{
 		echo "<p class=\"success\">Torrent was added successfully.</p>\n";
-		echo "<a href=\"newtorrents.php\"><img src=\"images/add.png\" border=\"0\" class=\"icon\" alt=\"Add Torrent\" title=\"Add Torrent\" /></a><a href=\"newtorrents.php\">Add Another Torrent</a><br>\n";
-		//rename torrent file to match filename
-		rename("torrents/" . clean($_FILES['torrent']['name']), "torrents/" . $filename . ".torrent");
+	// echo "<a href=\"newtorrents.php\"><img src=\"images/add.png\" border=\"0\" class=\"icon\" alt=\"Add Torrent\" title=\"Add Torrent\" /></a><a href=\"newtorrents.php\">Add Another Torrent</a><br>\n";
+
+        //rename torrent file to match filename (already ok)
+		// rename("torrents/" . clean($_FILES['torrent']['name']), "torrents/" . $filename . ".torrent");
 		//make torrent file readable by all
-		chmod("torrents/" . $filename . ".torrent", 0644);
+		chmod($torrent_file_path, 0644);
 	
 		//run RSS generator
-		require_once("rss_generator.php");
+		//  require_once("rss_generator.php");
 		//Display information from DumpTorrentCGI.php
-		require_once("torrent_functions.php");
+		/   require_once("torrent_functions.php");
 	}
 	else
 	{
 		echo _wobi_errorMessage() . "There were some errors. Check if this torrent has been added previously.</p>\n";
+        /*
 		//delete torrent file if it doesn't exist in database
 		$query = "SELECT COUNT(*) FROM ".$prefix."summary WHERE info_hash = '$hash'";
 		$results = mysql_query($query) or die(_wobi_errorMessage() . "Can't do SQL query - " . mysql_error() . "</p>");
@@ -177,6 +171,7 @@ function _wobi_addTorrent($torrent_file_path, $file_url, $file_path)
 		//make torrent file readable by all
 		chmod("torrents/" . $filename . ".torrent", 0644);
 		endOutput();
+        */
 	}
 }
 
@@ -187,15 +182,18 @@ function wobi_publish_file($file_path, $http_path)
 {
     require_once 'Tracker.php';
 
+    $torrent_file_path = $file_path . ".torrent";
+    $torrent_file_url = $http_path . ".torrent";
+
     // 1- Create the Torrent at "$file_path.torrent"
     $torrent = new Torrent(array($file_path), $TRACKER_URL . '/announce.php');
-    $myFile = $file_path . ".torrent";
-    $fh = fopen($myFile, 'w') or die("can't open file");
+    $fh = fopen($torrent_file_path, 'w') or die("can't open file");
     $stringData = (string)$torrent;
     fwrite($fh, $stringData);
     fclose($fh);
 
     // 2- Register to RivetTracker
+    _wobi_addTorrent($torrent_file_path, $torrent_file_url);
 }
 
 

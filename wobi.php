@@ -1,7 +1,10 @@
 <?php
 if (defined('WP_CONTENT_DIR')) {
-    define('WOBI_TRACKER_URL', get_bloginfo('url') . '/wp-content/plugins/wobi/announce.php');
-    define('WOBI_RELATIVE_PATH', '../../torrents/'); // From wp-content/plugins/wobi/ to wp-content/torrents/ (XXX ?)
+    define('WOBI_URL', get_bloginfo('url') . '/wp-content/plugins/wobi-bittorrent');
+    define('WOBI_TRACKER_URL', WOBI_URL . '/announce.php');
+    define('WOBI_TORRENT_URL', WOBI_URL . '/wobi/torrents');
+    define('WOBI_TORRENT_PATH', '/home/jeko/public_html/wobi/torrents');
+    //define('WOBI_RELATIVE_PATH', '../../uploads/'.date('m/d')); // From current directory to the place where files are stored
 }
 else {
 	require ("config.php");
@@ -9,7 +12,7 @@ else {
     define('WOBI_TRACKER_URL', WOBI_URL . '/announce.php');
     define('WOBI_TORRENT_URL', WOBI_URL . '/wobi/torrents');
     define('WOBI_TORRENT_PATH', '/home/jeko/public_html/wobi/torrents');
-    define('WOBI_RELATIVE_PATH', '..'); // From /wobi to / (the place where files are stored)
+    //define('WOBI_RELATIVE_PATH', '..'); // From /wobi to / (the place where files are stored)
 }
 
 // Example URL : "http://www.goodlooking.org/beta/wp-content/uploads/2010/04/charlie.mp3"
@@ -27,7 +30,8 @@ function _wobi_addTorrent($torrent_file_path, $torrent_file_url, $file_path, $fi
 
 	$tracker_url = WOBI_TRACKER_URL;
     $httpseed = true;
-    $relative_path = WOBI_RELATIVE_PATH . "/" . basename($file_path); // TODO find it from $torrent_file_path and $file_path
+    $tmp1 = explode("/wp-content/", $file_path);
+    $relative_path = "../../" . $tmp1[1];
     $getrightseed = true;
     $httpftplocation = $file_url;
     $target_path = "torrents/";
@@ -53,17 +57,17 @@ function _wobi_addTorrent($torrent_file_path, $torrent_file_url, $file_path, $fi
     $array = BDecode($alltorrent);
     if (!$array)
     {
-        echo _wobi_errorMessage() . "Error: The parser was unable to load your torrent.  Please re-create and re-upload the torrent.</p>\n";
+        $wobi_error = _wobi_errorMessage() . "Error: The parser was unable to load your torrent.  Please re-create and re-upload the torrent.</p>\n";
         return false;
     }
     if (strtolower($array["announce"]) != $tracker_url)
     {
-        echo _wobi_errorMessage() . "Error: The tracker announce URL does not match this:<br>$tracker_url<br>Please re-create and re-upload the torrent.</p>\n";
+        $wobi_error = _wobi_errorMessage() . "Error: The tracker announce URL does not match this:<br>$tracker_url<br>Please re-create and re-upload the torrent.</p>\n";
         return false;
     }
     if ($httpseed && $relative_path == "")
     {
-        echo _wobi_errorMessage() . "Error: HTTP seeding was checked however no relative path was given.</p>\n";
+        $wobi_error = _wobi_errorMessage() . "Error: HTTP seeding was checked however no relative path was given.</p>\n";
         return false;
     }
     if ($httpseed && $relative_path != "")
@@ -72,7 +76,7 @@ function _wobi_addTorrent($torrent_file_path, $torrent_file_url, $file_path, $fi
         {
             if (!is_dir($relative_path))
             {
-                echo _wobi_errorMessage() . "Error: HTTP seeding relative path ends in / but is not a valid directory.</p>\n";
+                $wobi_error = _wobi_errorMessage() . "Error: HTTP seeding relative path ends in / but is not a valid directory.</p>\n";
                 return false;
             }
         }
@@ -80,19 +84,19 @@ function _wobi_addTorrent($torrent_file_path, $torrent_file_url, $file_path, $fi
         {
             if (!is_file($relative_path))
             {
-                echo _wobi_errorMessage() . "Error: HTTP seeding relative path is not a valid file.</p>\n";
+                $wobi_error = _wobi_errorMessage() . "Error: HTTP seeding relative path is not a valid file.</p>\n";
                 return false;
             }
         }
     }
     if ($getrightseed && $httpftplocation == "")
     {
-        echo _wobi_errorMessage() . "Error: GetRight HTTP seeding was checked however no URL was given.</p>\n";
+        $wobi_error = _wobi_errorMessage() . "Error: GetRight HTTP seeding was checked however no URL was given.</p>\n";
         return false;
     }
     if ($getrightseed && (Substr($httpftplocation, 0, 7) != "http://" && Substr($httpftplocation, 0, 6) != "ftp://"))
     {
-        echo _wobi_errorMessage() . "Error: GetRight HTTP seeding URL must start with http:// or ftp://</p>\n";
+        $wobi_error = _wobi_errorMessage() . "Error: GetRight HTTP seeding URL must start with http:// or ftp://</p>\n";
         return false;
     }
     $hash = @sha1(BEncode($array["info"]));
@@ -102,7 +106,7 @@ function _wobi_addTorrent($torrent_file_path, $torrent_file_url, $file_path, $fi
     $move_torrent = rename($torrent_file_path, $target_path);
     if ($move_torrent == false)
     {
-        echo errorMessage() . "Unable to move $torrent_file_path to torrents/</p>\n";
+        $wobi_error = errorMessage() . "Unable to move $torrent_file_path to torrents/</p>\n";
     }	
 
 	if (!empty($filename)) // XXX can probably remove this...
@@ -139,13 +143,13 @@ function _wobi_addTorrent($torrent_file_path, $torrent_file_url, $file_path, $fi
 
 	if ((strlen($hash) != 40) || !verifyHash($hash))
 	{
-		echo _wobi_errorMessage() . "Error: Info hash must be exactly 40 hex bytes.</p>\n";
+		$wobi_error = _wobi_errorMessage() . "Error: Info hash must be exactly 40 hex bytes.</p>\n";
         return false;
 	}
 
 	if (Substr($url, 0, 7) != "http://" && $url != "")
 	{
-		echo _wobi_errorMessage() . "Error: The Torrent URL does not start with http:// Make sure you entered a correct URL.</p>\n";
+		$wobi_error = _wobi_errorMessage() . "Error: The Torrent URL does not start with http:// Make sure you entered a correct URL.</p>\n";
         return false;
 	}
 
@@ -155,14 +159,14 @@ function _wobi_addTorrent($torrent_file_path, $torrent_file_url, $file_path, $fi
     chmod($target_path, 0644);
 	if ($status)
 	{
-		echo "<p class=\"success\">Torrent was added successfully.</p>\n";
+		$wobi_error = "<p class=\"success\">Torrent was added successfully.</p>\n";
         require_once("wobi_functions.php");
         _wobi_addWebseedfiles($target_path, $relative_path, $httpftplocation, $hash);
         return true;
 	}
 	else
 	{
-		echo _wobi_errorMessage() . "There were some errors. Check if this torrent has been added previously.</p>\n";
+		$wobi_error = _wobi_errorMessage() . "There were some errors. Check if this torrent has been added previously.</p>\n";
         return false;
 	}
 }
@@ -186,7 +190,10 @@ function wobi_publish_file($file_path, $file_url)
     fclose($fh);
 
     // 2- Register to RivetTracker
-    _wobi_addTorrent($torrent_file_path, $torrent_file_url, $file_path, $file_url);
+    if (_wobi_addTorrent($torrent_file_path, $torrent_file_url, $file_path, $file_url))
+        return $torrent_file_url;
+    else
+        return false;
 }
 
 

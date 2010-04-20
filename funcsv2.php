@@ -615,4 +615,3 @@ function addquotes($input)
 	return $input;
 }
 
-?>

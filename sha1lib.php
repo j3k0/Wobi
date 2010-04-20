@@ -246,4 +246,3 @@ if ( !function_exists('sha1') )
 		return $raw_output ? $library->str_sha1($string) : $library->hex_sha1($string);
 	}
 }
-?>

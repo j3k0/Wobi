@@ -9,7 +9,7 @@ else {
     define('WOBI_TRACKER_URL', WOBI_URL . '/announce.php');
     define('WOBI_TORRENT_URL', WOBI_URL . '/wobi/torrents');
     define('WOBI_TORRENT_PATH', '/home/jeko/public_html/wobi/torrents');
-    define('WOBI_RELATIVE_PATH', '../../'); // From /wobi/torrents to /
+    define('WOBI_RELATIVE_PATH', '..'); // From /wobi to / (the place where files are stored)
 }
 
 // Example URL : "http://www.goodlooking.org/beta/wp-content/uploads/2010/04/charlie.mp3"
@@ -27,14 +27,14 @@ function _wobi_addTorrent($torrent_file_path, $torrent_file_url, $file_path, $fi
 
 	$tracker_url = WOBI_TRACKER_URL;
     $httpseed = true;
-    $relative_path = WOBI_RELATIVE_PATH; // TODO find it from $torrent_file_path
+    $relative_path = WOBI_RELATIVE_PATH . "/" . basename($file_path); // TODO find it from $torrent_file_path and $file_path
     $getrightseed = true;
-    $httpftplocation = $torrent_file_url;
+    $httpftplocation = $file_url;
     $target_path = "torrents/";
 
     $autoset = true;
     $filename = ""; // $file_path; // Extracted from torrent (if $autoset)
-    $url = ""; // $file_url;      // Extracted from torrent (if $autoset)
+    $url = "$file_url";      // Extracted from torrent (if $autoset)
 	$hash = "";     // Extracted from torrent (if $autoset)
 
 	// TODO: Only if not already connected.
@@ -88,19 +88,22 @@ function _wobi_addTorrent($torrent_file_path, $torrent_file_url, $file_path, $fi
     if ($getrightseed && $httpftplocation == "")
     {
         echo _wobi_errorMessage() . "Error: GetRight HTTP seeding was checked however no URL was given.</p>\n";
-        endOutput();
-        exit;
+        return false;
     }
     if ($getrightseed && (Substr($httpftplocation, 0, 7) != "http://" && Substr($httpftplocation, 0, 6) != "ftp://"))
     {
         echo _wobi_errorMessage() . "Error: GetRight HTTP seeding URL must start with http:// or ftp://</p>\n";
-        endOutput();
-        exit;
+        return false;
     }
     $hash = @sha1(BEncode($array["info"]));
     fclose($fd);
     
-    $target_path = $torrent_file_path; // Don't move the torrent, we already put it in a nice place.
+    $target_path = $target_path . basename($torrent_file_path); 
+    $move_torrent = rename($torrent_file_path, $target_path);
+    if ($move_torrent == false)
+    {
+        echo errorMessage() . "Unable to move $torrent_file_path to torrents/</p>\n";
+    }	
 
 	if (!empty($filename)) // XXX can probably remove this...
 		$filename = clean($filename);
@@ -137,59 +140,42 @@ function _wobi_addTorrent($torrent_file_path, $torrent_file_url, $file_path, $fi
 	if ((strlen($hash) != 40) || !verifyHash($hash))
 	{
 		echo _wobi_errorMessage() . "Error: Info hash must be exactly 40 hex bytes.</p>\n";
-		endOutput();
+        return false;
 	}
 
 	if (Substr($url, 0, 7) != "http://" && $url != "")
 	{
 		echo _wobi_errorMessage() . "Error: The Torrent URL does not start with http:// Make sure you entered a correct URL.</p>\n";
-		endOutput();
+        return false;
 	}
 
 	$query = "INSERT INTO ".$prefix."namemap (info_hash, filename, url, size, pubDate) VALUES (\"$hash\", \"$filename\", \"$url\", \"$total_size\", \"" . date('D, j M Y h:i:s') . "\")";
 	$status = makeTorrent($hash, true);
 	quickQuery($query);
-    chmod($torrent_file_path, 0644);
-    /*
+    chmod($target_path, 0644);
 	if ($status)
 	{
 		echo "<p class=\"success\">Torrent was added successfully.</p>\n";
-// echo "<a href=\"newtorrents.php\"><img src=\"images/add.png\" border=\"0\" class=\"icon\" alt=\"Add Torrent\" title=\"Add Torrent\" /></a><a href=\"newtorrents.php\">Add Another Torrent</a><br>\n";
-//rename torrent file to match filename (already ok)
-// rename("torrents/" . clean($_FILES['torrent']['name']), "torrents/" . $filename . ".torrent");
-	
-//run RSS generator
-//  require_once("rss_generator.php");
-//Display information from DumpTorrentCGI.php
-//  require_once("torrent_functions.php");
+        require_once("wobi_functions.php");
+        _wobi_addWebseedfiles($target_path, $relative_path, $httpftplocation, $hash);
+        return true;
 	}
 	else
 	{
 		echo _wobi_errorMessage() . "There were some errors. Check if this torrent has been added previously.</p>\n";
-		//delete torrent file if it doesn't exist in database
-		$query = "SELECT COUNT(*) FROM ".$prefix."summary WHERE info_hash = '$hash'";
-		$results = mysql_query($query) or die(_wobi_errorMessage() . "Can't do SQL query - " . mysql_error() . "</p>");
-		$data = mysql_fetch_row($results);
-		if ($data[0] == 0)
-		{
-			if (file_exists("torrents/" . $_FILES['torrent']['name']))
-				unlink("torrents/" . $_FILES['torrent']['name']);
-		}
-		//make torrent file readable by all
-		chmod("torrents/" . $filename . ".torrent", 0644);
+        return false;
 	}
-    */
 }
 
 // Creates and register a torrent file to the tracker server.
 //
 // Returns http path of .torrent file.
-function wobi_publish_file($file_path, $http_path)
+function wobi_publish_file($file_path, $file_url)
 {
     require_once 'Torrent.php';
 
     $filename = basename($file_path);
-    $torrent_file_path = WOBI_TORRENT_PATH . "/$filename.torrent";
+    $torrent_file_path = $file_path . ".torrent";
     $torrent_file_url = WOBI_TORRENT_URL . "/$filename.torrent";
 
     // 1- Create the Torrent

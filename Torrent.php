@@ -516,7 +516,7 @@ class Torrent {
      * @return void
      */
     protected function touch () {
-        $this->{'created by'}       = 'Torrent PHP Class - Adrien Gibrat';
+        $this->{'created by'}       = 'Wobi by Jeko, Torrent class by Adrien Gibrat';
         $this->{'creation date'}    = time();
     }
 

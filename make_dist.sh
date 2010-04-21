@@ -6,6 +6,7 @@ FILES="wobi.php wobi_functions.php Torrent.php funcsv2.php announce.php tracker.
 mkdir -p $DIRECTORY/torrents
 chmod 770 $DIRECTORY/torrents
 touch $DIRECTORY/torrents/index.php
+touch $DIRECTORY/wp-settings.php
 cp $FILES $DIRECTORY
 zip -r $ZIPFILE $DIRECTORY/
 rm -fr $DIRECTORY

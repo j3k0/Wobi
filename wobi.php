@@ -1,22 +1,7 @@
 <?php
-if (defined('WP_CONTENT_DIR')) {
-    define('WOBI_URL', get_bloginfo('url') . '/wp-content/plugins/wobi-bittorrent');
-    define('WOBI_TRACKER_URL', WOBI_URL . '/announce.php');
-    define('WOBI_TORRENT_URL', WOBI_URL . '/wobi/torrents');
-    define('WOBI_TORRENT_PATH', '/home/jeko/public_html/wobi/torrents');
-    //define('WOBI_RELATIVE_PATH', '../../uploads/'.date('m/d')); // From current directory to the place where files are stored
-}
-else {
-	require ("config.php");
-    define('WOBI_URL', 'http://localhost/jeko/wobi');
-    define('WOBI_TRACKER_URL', WOBI_URL . '/announce.php');
-    define('WOBI_TORRENT_URL', WOBI_URL . '/wobi/torrents');
-    define('WOBI_TORRENT_PATH', '/home/jeko/public_html/wobi/torrents');
-    //define('WOBI_RELATIVE_PATH', '..'); // From /wobi to / (the place where files are stored)
-}
-
-// Example URL : "http://www.goodlooking.org/beta/wp-content/uploads/2010/04/charlie.mp3"
-// Example Path: "/var/www/goodlooking/beta/wp-content/uploads/2010/04/charlie.mp3"
+define('WOBI_URL', get_bloginfo('url') . '/wp-content/plugins/wobi-bittorrent');
+define('WOBI_TRACKER_URL', WOBI_URL . '/announce.php');
+define('WOBI_TORRENT_URL', WOBI_URL . '/torrents');
 
 function _wobi_errorMessage()
 {
@@ -42,8 +27,8 @@ function _wobi_addTorrent($torrent_file_path, $torrent_file_url, $file_path, $fi
 	$hash = "";     // Extracted from torrent (if $autoset)
 
 	// TODO: Only if not already connected.
-    $db = mysql_connect($dbhost, $dbuser, $dbpass) or die(errorMessage() . "Couldn't connect to the database, contact the administrator.</p>");
-	mysql_select_db($database) or die(errorMessage() . "Can't open the database.</p>");
+    // $db = mysql_connect($dbhost, $dbuser, $dbpass) or die(errorMessage() . "Couldn't connect to the database, contact the administrator.</p>");
+	// mysql_select_db($database) or die(errorMessage() . "Can't open the database.</p>");
 	
 	require_once ("funcsv2.php");
 	require_once ("BDecode.php");

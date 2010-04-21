@@ -56,11 +56,25 @@ function wobi_install()
     /*
     // register widget
     if (function_exists('register_sidebar_widget'))
-        register_sidebar_widget('Smart YouTube', 'yte_widget'); 
+    register_sidebar_widget('Smart YouTube', 'yte_widget'); 
 
     if (function_exists('register_widget_control')) 
-        register_widget_control('Smart YouTube', 'yte_widgetcontrol');
-    */
+    register_widget_control('Smart YouTube', 'yte_widgetcontrol');
+     */
+
+    $prefix = "rt_";
+    $makenamemap= 'CREATE TABLE ' . $prefix . 'namemap (info_hash char(40) NOT NULL default "", filename varchar(250) NOT NULL default "", url varchar(250) NOT NULL default "", size bigint(20) unsigned NOT NULL, pubDate varchar(25) NOT NULL default "", PRIMARY KEY(info_hash)) ENGINE = innodb'; 	
+    $makesummary = 'CREATE TABLE ' . $prefix . 'summary (info_hash char(40) NOT NULL default "", dlbytes bigint unsigned NOT NULL default 0, seeds int unsigned NOT NULL default 0, leechers int unsigned NOT NULL default 0, finished int unsigned NOT NULL default 0, lastcycle int unsigned NOT NULL default "0", lastSpeedCycle int unsigned NOT NULL DEFAULT "0", speed bigint unsigned NOT NULL default 0, piecelength int(11) NOT NULL default -1, numpieces int(11) NOT NULL default 0, PRIMARY KEY (info_hash)) ENGINE = innodb';
+    $maketimestamps = 'CREATE TABLE ' . $prefix . 'timestamps (info_hash char(40) not null, sequence int unsigned not null auto_increment, bytes bigint unsigned not null, delta smallint unsigned not null, primary key(sequence), key sorting (info_hash)) ENGINE = innodb';
+    $makespeedlimit = 'CREATE TABLE ' . $prefix . 'speedlimit (uploaded bigint(25) NOT NULL default 0, total_uploaded bigint(30) NOT NULL default 0, started bigint(25) NOT NULL default 0) ENGINE = innodb';
+    $makewebseedfiles = 'CREATE TABLE ' . $prefix . 'webseedfiles (info_hash char(40) default NULL, filename char(250) NOT NULL default "", startpiece int(11) NOT NULL default 0, endpiece int(11) NOT NULL default 0, startpieceoffset int(11) NOT NULL default 0, fileorder int(11) NOT NULL default 0, UNIQUE KEY fileseq (info_hash,fileorder)) ENGINE = innodb';	
+    mysql_query($makesummary) or die(errorMessage() . "Can't make the summary table: " . mysql_error() . "</p>");
+    mysql_query($makenamemap) or die(errorMessage() . "Can't make the namemap table: " . mysql_error() . "</p>");
+    mysql_query($maketimestamps) or die(errorMessage() . "Can't make the timestamps table: " . mysql_error() . "</p>");
+    mysql_query($makespeedlimit) or die(errorMessage() . "Can't make the speedlimit table: " . mysql_error() . "</p>");
+    mysql_query($makewebseedfiles) or die(errorMessage() . "Can't make the webseedfiles table: " . mysql_error() . "</p>");
+    mysql_query("INSERT INTO ".$prefix."speedlimit values (0,0,0)") or die(errorMessage() . "Can't insert zeros into speedlimit table: " . mysql_error() . "</p>");
+    echo "<p class=\"success\">Database was created successfully!</p><br><br>";
 }
 
 function wobi_content($the_content, $side=0)

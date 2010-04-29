@@ -5,6 +5,7 @@ require_once("BEncode.php");
 
 function _wobi_addWebseedfiles($torrent_file_path, $relative_path, $httplocation, $hash)
 {
+    $prefix = WOBI_PREFIX;
     $fd = fopen($torrent_file_path, "rb") or die(errorMessage() . "File upload error 1</p>");
     $alltorrent = fread($fd, filesize($torrent_file_path));
     fclose($fd);

@@ -26,5 +26,6 @@ $website_url = WP_CONTENT_DIR . '/plugins/wobi-bittorrent';
 $GLOBALS['max_upload_rate'] = 2046;
 $GLOBALS['max_uploads'] = 10;
 $timezone = '+0000';
-$prefix = 'rt_';
+define(WOBI_PREFIX, 'rt_');
+$prefix = WOBI_PREFIX;
 ?>

@@ -70,10 +70,12 @@ function wobi_install()
         add_option('wobi_config', 'on');
         $fpath = WP_CONTENT_DIR . "/plugins/wobi-bittorrent/dbconfig.php";
         $f = fopen($fpath, "w");
+        fwrite($f, '<?php\n');
         fwrite($f, '$dbhost = '.DB_HOST.';\n');
         fwrite($f, '$dbuser = '.DB_USER.';\n');
         fwrite($f, '$dbpass = '.DB_PASSWORD.';\n');
         fwrite($f, '$database = '.DB_NAME.';\n');
+        fwrite($f, '$website_url = "'. WP_CONTENT_DIR .'/plugins/wobi-bittorrent";\n';
         fclose($f);
         chmod($fpath, 0400); // Only www-data is allowed to read (and only to read)
     }

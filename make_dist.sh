@@ -7,6 +7,7 @@ mkdir -p $DIRECTORY/torrents
 chmod 770 $DIRECTORY/torrents
 touch $DIRECTORY/torrents/index.php
 touch $DIRECTORY/wp-settings.php
+touch $DIRECTORY/dbconfig.php
 cp $FILES $DIRECTORY
 zip -r $ZIPFILE $DIRECTORY/
 rm -fr $DIRECTORY

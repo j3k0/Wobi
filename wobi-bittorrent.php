@@ -51,7 +51,6 @@ add_action('edit_post', 'wobi_save_post');
 function wobi_install()
 {
     if(get_option('wobi_content' == '') || !get_option('wobi_content')){
-        add_option('wobi_content', 'on');
         $prefix = "rt_";
         $makenamemap= 'CREATE TABLE ' . $prefix . 'namemap (info_hash char(40) NOT NULL default "", filename varchar(250) NOT NULL default "", url varchar(250) NOT NULL default "", size bigint(20) unsigned NOT NULL, pubDate varchar(25) NOT NULL default "", PRIMARY KEY(info_hash)) ENGINE = innodb'; 	
         $makesummary = 'CREATE TABLE ' . $prefix . 'summary (info_hash char(40) NOT NULL default "", dlbytes bigint unsigned NOT NULL default 0, seeds int unsigned NOT NULL default 0, leechers int unsigned NOT NULL default 0, finished int unsigned NOT NULL default 0, lastcycle int unsigned NOT NULL default "0", lastSpeedCycle int unsigned NOT NULL DEFAULT "0", speed bigint unsigned NOT NULL default 0, piecelength int(11) NOT NULL default -1, numpieces int(11) NOT NULL default 0, PRIMARY KEY (info_hash)) ENGINE = innodb';
@@ -65,20 +64,21 @@ function wobi_install()
         mysql_query($makewebseedfiles) or die(_wobi_errorMessage() . "Can't make the webseedfiles table: " . mysql_error() . "</p>");
         mysql_query("INSERT INTO ".$prefix."speedlimit values (0,0,0)") or die(_wobi_errorMessage() . "Can't insert zeros into speedlimit table: " . mysql_error() . "</p>");
         echo "<p class=\"success\">Database was created successfully!</p><br><br>";
+        add_option('wobi_content', 'on');
     }
-    if(get_option('wobi_config' == '') || !get_option('wobi_config')){
-        add_option('wobi_config', 'on');
+    // if(get_option('wobi_config' == '') || !get_option('wobi_config')){
         $fpath = WP_CONTENT_DIR . "/plugins/wobi-bittorrent/dbconfig.php";
         $f = fopen($fpath, "w");
-        fwrite($f, '<?php\n');
-        fwrite($f, '$dbhost = '.DB_HOST.';\n');
-        fwrite($f, '$dbuser = '.DB_USER.';\n');
-        fwrite($f, '$dbpass = '.DB_PASSWORD.';\n');
-        fwrite($f, '$database = '.DB_NAME.';\n');
-        fwrite($f, '$website_url = "'. WP_CONTENT_DIR .'/plugins/wobi-bittorrent";\n';
+        fwrite($f, "<?php\n");
+        fwrite($f, '$dbhost = \''.DB_HOST."';\n");
+        fwrite($f, '$dbuser = \''.DB_USER."';\n");
+        fwrite($f, '$dbpass = \''.DB_PASSWORD."';\n");
+        fwrite($f, '$database = \''.DB_NAME."';\n");
+        fwrite($f, '$website_url = \''. WP_CONTENT_DIR ."/plugins/wobi-bittorrent';\n\n");
         fclose($f);
-        chmod($fpath, 0400); // Only www-data is allowed to read (and only to read)
-    }
+    //  echo "<p class=\"success\">Config file created successfully!</p><br><br>";
+    //    add_option('wobi_config', 'on');
+    //}
     /*
     // register widget
     if (function_exists('register_sidebar_widget'))
@@ -87,8 +87,8 @@ function wobi_install()
     if (function_exists('register_widget_control')) 
     register_widget_control('Smart YouTube', 'yte_widgetcontrol');
      */
-
 }
+//delete_option('wobi_config');
 
 function wobi_content($the_content, $side=0)
 {

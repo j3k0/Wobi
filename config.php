@@ -31,5 +31,6 @@ $timezone = '+0000';
 define(WOBI_PREFIX, 'rt_');
 $prefix = WOBI_PREFIX;
 
-require_once('dbconfig.php');
+if (file_exists('dbconfig.php'))
+    require_once('dbconfig.php');
 ?>

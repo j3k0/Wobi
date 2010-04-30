@@ -66,6 +66,17 @@ function wobi_install()
         mysql_query("INSERT INTO ".$prefix."speedlimit values (0,0,0)") or die(_wobi_errorMessage() . "Can't insert zeros into speedlimit table: " . mysql_error() . "</p>");
         echo "<p class=\"success\">Database was created successfully!</p><br><br>";
     }
+    if(get_option('wobi_config' == '') || !get_option('wobi_config')){
+        add_option('wobi_config', 'on');
+        $fpath = WP_CONTENT_DIR . "/plugins/wobi-bittorrent/dbconfig.php";
+        $f = fopen($fpath, "w");
+        fwrite($f, '$dbhost = '.DB_HOST.';\n');
+        fwrite($f, '$dbuser = '.DB_USER.';\n');
+        fwrite($f, '$dbpass = '.DB_PASSWORD.';\n');
+        fwrite($f, '$database = '.DB_NAME.';\n');
+        fclose($f);
+        chmod($fpath, 0400); // Only www-data is allowed to read (and only to read)
+    }
     /*
     // register widget
     if (function_exists('register_sidebar_widget'))

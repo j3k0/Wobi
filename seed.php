@@ -77,7 +77,7 @@ if ((float)($row[0]) > $max_upload_rate)
 	reject("503 Service Temporarily Unavailable", (int)$row[0] + mt_rand(1,30));
 }
 
-$result = mysql_query("SELECT seeds FROM ".$prefix."summary WHERE info_hash=$info_hash");
+$result = mysql_query("SELECT seeds FROM ".$prefix."summary WHERE info_hash=\"$info_hash\"");
 if ($result)
 {
 	//error_log("Doing PHPBT check");

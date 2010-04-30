@@ -17,7 +17,7 @@ function _wobi_addTorrent($torrent_file_path, $torrent_file_url, $file_path, $fi
     $httpseed = true;
     $tmp1 = explode("/wp-content/", $file_path);
     $relative_path = "../../" . $tmp1[1];
-    $getrightseed = true;
+    $getrightseed = false;
     $httpftplocation = $file_url;
     $target_path = "torrents/";
 

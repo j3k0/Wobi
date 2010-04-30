@@ -24,7 +24,7 @@ function _wobi_addWebseedfiles($torrent_file_path, $relative_path, $httplocation
     //
     $data_array = $array;
     $data_array["httpseeds"][0] = WOBI_URL . "/seed.php";
-    $data_array["url-list"][0] = $httplocation;
+    //$data_array["url-list"][0] = $httplocation;
     
     $to_write = BEncode($data_array);
     //write torrent file
